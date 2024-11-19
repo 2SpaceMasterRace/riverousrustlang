@@ -1,0 +1,1 @@
+/Users/nanodijkstra/Work/programming-languages/riverousrustlang/Yet_Another_Rust_Resource/hello_world/target/debug/hello_world: /Users/nanodijkstra/Work/programming-languages/riverousrustlang/Yet_Another_Rust_Resource/hello_world/src/main.rs

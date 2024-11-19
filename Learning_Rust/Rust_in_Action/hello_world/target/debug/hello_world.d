@@ -1,0 +1,1 @@
+/Users/nanodijkstra/Work/riverousrustlang/Learning_Rust/Rust_in_Action/hello_world/target/debug/hello_world: /Users/nanodijkstra/Work/riverousrustlang/Learning_Rust/Rust_in_Action/hello_world/src/main.rs
