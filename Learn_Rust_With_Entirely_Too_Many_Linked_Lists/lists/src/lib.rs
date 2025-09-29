@@ -1,5 +1,11 @@
 pub mod first;
 
+impl List {
+    pub fn new() -> Self {
+        List { head: Link::Empty }
+    }
+}
+
 struct List {
     head: Link,
 }
