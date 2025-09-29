@@ -1,0 +1,1 @@
+/home/nanodijkstra/Projects/riverousrustlang/Learn_Rust_With_Entirely_Too_Many_Linked_Lists/lists/target/debug/liblists.rlib: /home/nanodijkstra/Projects/riverousrustlang/Learn_Rust_With_Entirely_Too_Many_Linked_Lists/lists/src/first.rs /home/nanodijkstra/Projects/riverousrustlang/Learn_Rust_With_Entirely_Too_Many_Linked_Lists/lists/src/lib.rs
