@@ -13,8 +13,7 @@ struct Node {
 }
 
 impl List {
-    pub fn new() -> self {
+    pub fn new() -> Self {
         List { head: Link::Empty }
     }
 }
-
