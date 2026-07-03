@@ -1,9 +1,9 @@
 # riverousrustlang
 nano crash course into the rust programming language to build cool systems projects. <br>
-the crash course is tailored towards developers, CPU/GPU whisperers and perf hackers.
+the crash course is tailored towards system programmers, CPU/GPU whisperers and perf hackers.
 
 ## whoami
-Mercenary for Machine Learning Systems. Former LLM-hacker at a UCSC.
+Lover of Computer Systems. Destroyer of Ugly Software.
 
 # Release Notes
 
