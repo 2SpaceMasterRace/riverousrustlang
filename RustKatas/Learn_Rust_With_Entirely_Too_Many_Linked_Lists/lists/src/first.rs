@@ -9,7 +9,7 @@ enum Link {
 
 struct Node {
     elem: i32,
-    next: List,
+    next: Link,
 }
 
 impl List {
@@ -34,5 +34,39 @@ impl List {
                 Some(node.elem)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::List;
+    #[test]
+    fn basics() {
+        let mut list = List::new();
+
+        // check the property of list when Empty
+        assert_eq!(list.pop(), None);
+
+        // populate list
+        list.push(1);
+        list.push(2);
+        list.push(3);
+
+        // assert property of popping elements of the list
+        assert_eq!(list.pop(), Some(3));
+        assert_eq!(list.pop(), Some(2));
+
+        // re-assess the list to avoid corrupution of data
+        list.push(4);
+        list.push(5);
+
+        // pop elements again
+        assert_eq!(list.pop(), Some(5));
+        assert_eq!(list.pop(), Some(4));
+
+        // check exhaustion
+
+        assert_eq!(list.pop(), Some(1));
+        assert_eq!(list.pop(), None);
     }
 }
