@@ -88,3 +88,37 @@ enum Foo {
 the null pointer optimization kicks in, which eliminates the space needed for the tag. If the variant is A, the whole enum is set to all 0's. Otherwise, the variant is B. This works because B can never be all 0's, since it contains a non-zero pointer. Slick!
 
 Can you think of other enums and types that could do this kind of optimization? There's actually a lot! This is why Rust leaves enum layout totally unspecified. There are a few more complicated enum layout optimizations that Rust will do for us, but the null pointer one is definitely the most important! It means &, &mut, Box, Rc, Arc, Vec, and several other important types in Rust have no overhead when put in an Option! (We'll get to most of these in due time.)
+
+
+So how do we avoid the extra junk, uniformly allocate, and get that sweet null-pointer optimization? We need to better separate out the idea of having an element from allocating another list. To do this, we have to think a little more C-like: structs!
+
+While enums let us declare a type that can contain one of several values, structs let us declare a type that contains many values at once. Let's break our List into two types: A List, and a Node.
+
+As before, a List is either Empty or has an element followed by another List. By representing the "has an element followed by another List" case by an entirely separate type, we can hoist the Box to be in a more optimal position:
+
+struct Node {
+    elem: i32,
+    next: List,
+}
+
+pub enum List {
+    Empty,
+    More(Box<Node>),
+}
+
+Let's check our priorities:
+
+    Tail of a list never allocates extra junk: check!
+    enum is in delicious null-pointer-optimized form: check!
+    All elements are uniformly allocated: check!
+
+Alright! We actually just constructed exactly the layout that we used to demonstrate that our first layout (as suggested by the official Rust documentation) was problematic.
+
+We marked the List as public (because we want people to be able to use it), but not the Node. The problem is that the internals of an enum are totally public, and we're not allowed to publicly talk about private types. We could make all of Node totally public, but generally in Rust we favour keeping implementation details private.
+
+Because List is a struct with a single field, its size is the same as that field. Yay zero-cost abstractions!
+
+Alright, that compiled! Rust is pretty mad, because as far as it can tell, everything we've written is totally useless: we never use head, and no one who uses our library can either since it's private. Transitively, that means Link and Node are useless too. So let's solve that! Let's implement some code for our List!
+
+
+
