@@ -37,6 +37,19 @@ impl List {
     }
 }
 
+impl Drop for List {
+    fn drop(&mut self) {
+        let mut current_link = std::mem::replace(&mut self.head, Link::Empty);
+        // `while let` == "do this thing until this pattern doesn't match"
+        // boxed_node goes out of scope and gets dropped here;
+        // but its Node's `next` field has been set to Link::Empty
+        // so no unbounded recursion occurs.
+        while let Link::More(mut boxed_node) = current_link {
+            current_link = std::mem::replace(&mut boxed_node.next, Link::Empty)
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::List;
