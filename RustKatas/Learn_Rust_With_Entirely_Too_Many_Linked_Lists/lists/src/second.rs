@@ -2,10 +2,8 @@ pub struct List {
     head: Link,
 }
 
-enum Link {
-    Empty,
-    More(Box<Node>),
-}
+// type alias are the coolest thing ever !!!
+type Link = Option<Box<Node>>;
 
 struct Node {
     elem: i32,
@@ -14,22 +12,22 @@ struct Node {
 
 impl List {
     pub fn new() -> Self {
-        List { head: Link::Empty }
+        List { head: None }
     }
 
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
             elem: elem,
-            next: std::mem::replace(&mut self.head, Link::Empty),
+            next: std::mem::replace(&mut self.head, None),
         });
 
-        self.head = Link::More(new_node);
+        self.head = Some(new_node);
     }
 
     pub fn pop(&mut self) -> Option<i32> {
-        match std::mem::replace(&mut self.head, Link::Empty) {
-            Link::Empty => None,
-            Link::More(node) => {
+        match std::mem::replace(&mut self.head, None) {
+            None => None,
+            Some(node) => {
                 self.head = node.next;
                 Some(node.elem)
             }
@@ -45,13 +43,13 @@ impl List {
 
 impl Drop for List {
     fn drop(&mut self) {
-        let mut current_link = std::mem::replace(&mut self.head, Link::Empty);
+        let mut current_link = std::mem::replace(&mut self.head, None);
         // `while let` == "do this thing until this pattern doesn't match"
         // boxed_node goes out of scope and gets dropped here;
-        // but its Node's `next` field has been set to Link::Empty
+        // but its Node's `next` field has been set to None
         // so no unbounded recursion occurs.
-        while let Link::More(mut boxed_node) = current_link {
-            current_link = std::mem::replace(&mut boxed_node.next, Link::Empty)
+        while let Some(mut boxed_node) = current_link {
+            current_link = std::mem::replace(&mut boxed_node.next, None)
         }
     }
 }
