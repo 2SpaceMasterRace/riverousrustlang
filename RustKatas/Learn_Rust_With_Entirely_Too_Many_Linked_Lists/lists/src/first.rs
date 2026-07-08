@@ -1,6 +1,9 @@
 pub struct List {
     head: Link,
 }
+pub trait Drop {
+    fn drop(&mut self);
+}
 
 enum Link {
     Empty,

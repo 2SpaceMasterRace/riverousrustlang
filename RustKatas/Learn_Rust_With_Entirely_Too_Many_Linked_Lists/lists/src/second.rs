@@ -2,6 +2,10 @@ pub struct List<T> {
     head: Link<T>,
 }
 
+pub trait Drop {
+    fn drop(&mut self);
+}
+
 pub trait Iterator {
     type Item;
     fn next(&mut self) -> Option<Self::Item>;
