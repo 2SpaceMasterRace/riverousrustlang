@@ -6,16 +6,19 @@ pub trait Drop {
     fn drop(&mut self);
 }
 
+// type alias are the coolest thing ever !!!
+type Link<T> = Option<Box<Node<T>>>;
+
 pub trait Iterator {
     type Item;
     fn next(&mut self) -> Option<Self::Item>;
 }
-
-// type alias are the coolest thing ever !!!
-type Link<T> = Option<Box<Node<T>>>;
-
 // Tuple Structs
 pub struct IntoIter<T>(List<T>);
+
+pub struct Iter<'a, T> {
+    next: Option<&'a Node<T>>,
+}
 
 struct Node<T> {
     elem: T,
@@ -55,6 +58,13 @@ impl<T> List<T> {
         IntoIter(self)
     }
 
+    // not comfortable "hiding" that a struct contains a lifetime, so we use the  Rust 2018 "explicitly elided lifetime" syntax, '_:
+    pub fn iter<'a>(&'a self) -> Iter<'_, T> {
+        Iter {
+            next: self.head.as_deref(),
+        }
+    }
+
     // derive pop and drop cleanly
     pub fn pop_node(&mut self) -> Link<T> {
         //TODO
@@ -80,6 +90,17 @@ impl<T> Iterator for IntoIter<T> {
     fn next(&mut self) -> Option<Self::Item> {
         // access tuple numerically
         self.0.pop()
+    }
+}
+
+impl<'a, T> Iterator for Iter<'a, T> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next.map(|node| {
+            self.next = node.next.as_deref().map::<&Node<T>, _>(|node| &node);
+            &node.elem
+        })
     }
 }
 
@@ -149,5 +170,17 @@ mod test {
         assert_eq!(iter.next(), Some(2));
         assert_eq!(iter.next(), Some(1));
         assert_eq!(iter.next(), None);
+    }
+    #[test]
+    fn iter() {
+        let mut list = List::new();
+        list.push(1);
+        list.push(2);
+        list.push(3);
+
+        let mut iter = list.iter();
+        assert_eq!(iter.next(), Some(&3));
+        assert_eq!(iter.next(), Some(&2));
+        assert_eq!(iter.next(), Some(&1));
     }
 }
