@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 1 · The Shape of a List</title>
+<link rel="stylesheet" href="../assets/lesson.css">
+<script src="../assets/quiz.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Rust Ownership · Lesson 1 · first.rs</p>
+  <h1>The Shape of a List</h1>
+  <p class="lede">Before we can talk about <em>ownership</em>, we need to see what a
+  list actually <em>is</em> — as boxes of memory the machine can touch. This lesson
+  covers only the first 16 lines of <code>first.rs</code>: the three type
+  definitions. By the end you'll be able to write them from a blank file and explain
+  why they <em>have</em> to look this way.</p>
+
+  <div class="note aha">
+    <span class="tag">The one win</span>
+    A linked list is a chain of nodes where each node <b>owns</b> the next one.
+    The whole design of <code>first.rs</code> exists to make that chain
+    representable in memory with a size the compiler can compute.
+  </div>
+
+  <!-- ================================================================= -->
+  <h2>1 · Two places a value can live: the stack and the heap</h2>
+
+  <p>Rust is your first language, so let's start from the metal. When your program
+  runs, its data lives in one of two regions of memory:</p>
+
+  <div class="mem">
+    <div class="mem-col stack">
+      <h4>The Stack</h4>
+      <div class="cell stack">fast, ordered<span class="lbl">grows &amp; shrinks as functions are called and return</span></div>
+      <div class="cell stack">fixed, known size<span class="lbl">the compiler must know how many bytes at compile time</span></div>
+    </div>
+    <div class="mem-col heap">
+      <h4>The Heap</h4>
+      <div class="cell heap">flexible<span class="lbl">for data whose size isn't known up front, or that must outlive one function call</span></div>
+      <div class="cell heap">reached by a pointer<span class="lbl">an address stored on the stack points to the real data on the heap</span></div>
+    </div>
+  </div>
+
+  <p>The stack is like a stack of plates: the machine only ever adds to or removes
+  from the top, so it's extremely fast — but to reserve space, <b>the compiler must
+  know the exact size of every value in advance.</b> That single rule is the villain
+  of this entire lesson. Hold onto it.</p>
+
+  <div class="note">
+    <span class="tag">Vocabulary</span>
+    A <b>pointer</b> is just a value that holds a memory <em>address</em> — a number
+    that says "the real thing is over <em>there</em>." On a 64-bit machine a pointer
+    is 8 bytes, always, no matter how big the thing it points to is.
+  </div>
+
+  <!-- ================================================================= -->
+  <h2>2 · <code>struct</code> — a named bundle of fields</h2>
+
+  <p>A <code>struct</code> glues several values together under one name. Line 13–16
+  of <code>first.rs</code>:</p>
+
+<pre><code><span class="c-kw">struct</span> <span class="c-ty">Node</span> {
+    elem: <span class="c-ty">i32</span>,
+    next: <span class="c-ty">Link</span>,
+}</code></pre>
+
+  <div class="smap">
+    <div class="row"><div class="src">struct Node { … }</div><div class="exp"><b>struct</b> = "define a new type that bundles fields together." <code>Node</code> is the type's name.</div></div>
+    <div class="row"><div class="src">elem: i32</div><div class="exp">A field named <b>elem</b> of type <b><code>i32</code></b> — a 32-bit signed integer. This is the actual data a list node carries.</div></div>
+    <div class="row"><div class="src">next: Link</div><div class="exp">A field named <b>next</b> of type <b><code>Link</code></b> — this is what chains one node to the following one. We define <code>Link</code> next.</div></div>
+  </div>
+
+  <p>So a <code>Node</code> is "an integer, plus a link to whatever comes after it."
+  That's the essence of a linked list: each node knows only about the <em>next</em> one.</p>
+
+  <!-- ================================================================= -->
+  <h2>3 · <code>enum</code> — a value that is exactly one of several shapes</h2>
+
+  <p>A list needs to express "there is a next node" <em>or</em> "this is the end."
+  Rust's tool for "one of these possibilities" is the <code>enum</code>. Lines 8–11:</p>
+
+<pre><code><span class="c-kw">enum</span> <span class="c-ty">Link</span> {
+    <span class="c-lit">Empty</span>,
+    <span class="c-lit">More</span>(<span class="c-ty">Box</span>&lt;<span class="c-ty">Node</span>&gt;),
+}</code></pre>
+
+  <div class="smap">
+    <div class="row"><div class="src">enum Link { … }</div><div class="exp"><b>enum</b> = "a value of type <code>Link</code> is <em>exactly one</em> of the following variants at any moment." Never both, never neither.</div></div>
+    <div class="row"><div class="src">Empty</div><div class="exp">The first variant. Carries no data — it just means "the chain ends here." This is how a list represents emptiness <em>without</em> null.</div></div>
+    <div class="row"><div class="src">More(Box&lt;Node&gt;)</div><div class="exp">The second variant. It <em>carries</em> data: a <code>Box&lt;Node&gt;</code>, i.e. "there is another node, and here's how to reach it."</div></div>
+  </div>
+
+  <div class="note aha">
+    <span class="tag">Why no null?</span>
+    In many languages the "end of list" is a special <code>null</code> pointer, and
+    forgetting to check for it crashes programs. Rust makes emptiness a named variant
+    (<code>Empty</code>) that you're <em>forced</em> to handle. The bug class simply
+    can't exist. Ownership's cousin: safety by making the compiler check.
+  </div>
+
+  <!-- ================================================================= -->
+  <h2>4 · The problem that forces <code>Box</code> into existence</h2>
+
+  <p>Now the crux. Suppose we'd written the <code>More</code> variant to hold a
+  <code>Node</code> <em>directly</em>, with no <code>Box</code>:</p>
+
+<pre><code><span class="c-com">// imaginary, BROKEN version</span>
+<span class="c-kw">enum</span> <span class="c-ty">Link</span> { Empty, More(<span class="c-ty">Node</span>) }   <span class="c-com">// Node contains a Link...</span>
+<span class="c-kw">struct</span> <span class="c-ty">Node</span> { elem: <span class="c-ty">i32</span>, next: <span class="c-ty">Link</span> }  <span class="c-com">// ...which contains a Node...</span></code></pre>
+
+  <p>Ask the compiler its one question: <b>how many bytes is a <code>Node</code>?</b></p>
+
+  <ul>
+    <li>A <code>Node</code> = an <code>i32</code> (4 bytes) + a <code>Link</code>.</li>
+    <li>A <code>Link</code> (the <code>More</code> case) = a whole <code>Node</code>.</li>
+    <li>…which contains a <code>Link</code>, which contains a <code>Node</code>, which…</li>
+  </ul>
+
+  <p>The size is <b>4 + 4 + 4 + …</b> forever. Infinite. The compiler literally cannot
+  reserve stack space for it, and it rejects the program:</p>
+
+<pre><code><span class="c-com">error[E0072]: recursive type `Link` has infinite size</span></code></pre>
+
+  <p>The fix is to break the chain of "contains" with a <b>pointer</b>. That's exactly
+  what <code>Box&lt;Node&gt;</code> is.</p>
+
+  <!-- ================================================================= -->
+  <h2>5 · <code>Box&lt;Node&gt;</code> — a fixed-size handle to a heap-allocated Node</h2>
+
+  <p>A <code>Box&lt;Node&gt;</code> is a pointer that <b>owns</b> a <code>Node</code>
+  living on the heap. Two consequences, both essential:</p>
+
+  <ul>
+    <li><b>Fixed size.</b> A <code>Box</code> is just an address — 8 bytes — no matter
+    how big the <code>Node</code> behind it is. So the compiler's question now has an
+    answer: a <code>Link</code> is at most "a tag + 8 bytes." Finite. Compiles.</li>
+    <li><b>Owns the heap data.</b> When the <code>Box</code> is dropped, the
+    <code>Node</code> it points to is freed automatically. No manual <code>free</code>,
+    no garbage collector. <em>This is ownership</em>, and it's the thread we'll pull on
+    for the rest of the course.</li>
+  </ul>
+
+  <p>Here's the whole list in memory — three nodes holding <code>1, 2, 3</code>:</p>
+
+  <div class="mem">
+    <div class="mem-col stack">
+      <h4>Stack</h4>
+      <div class="cell stack">List<span class="lbl">head: <span class="ptr">More →</span></span></div>
+    </div>
+    <div class="mem-col heap">
+      <h4>Heap</h4>
+      <div class="cell heap">Node { elem: 3, next: <span class="ptr">More →</span> }</div>
+      <div class="cell heap">Node { elem: 2, next: <span class="ptr">More →</span> }</div>
+      <div class="cell heap">Node { elem: 1, next: Empty }</div>
+    </div>
+  </div>
+
+  <p>The <code>List</code> itself is tiny and lives on the stack (lines 1–3):</p>
+
+<pre><code><span class="c-kw">pub struct</span> <span class="c-ty">List</span> {
+    head: <span class="c-ty">Link</span>,
+}</code></pre>
+
+  <div class="smap">
+    <div class="row"><div class="src">pub struct List</div><div class="exp"><b>pub</b> = "public": code outside this file may use the <code>List</code> type. (Its <code>head</code> field is <em>not</em> <code>pub</code>, so it stays private — an implementation detail.)</div></div>
+    <div class="row"><div class="src">head: Link</div><div class="exp">The list is nothing but a single <code>Link</code> — the front of the chain. Everything else hangs off the heap behind it.</div></div>
+  </div>
+
+  <!-- ================================================================= -->
+  <h2>Check yourself</h2>
+
+  <div class="quiz" data-answer="b">
+    <p class="q">Why does <code>More</code> hold <code>Box&lt;Node&gt;</code> instead of <code>Node</code>?</p>
+    <button data-opt="a">Because Box makes the node run faster on the heap</button>
+    <button data-opt="b">Because a directly-nested Node would have infinite size</button>
+    <button data-opt="c">Because enums are not allowed to contain structs</button>
+    <p class="why" hidden>A <code>Node</code> containing a <code>Node</code> containing a
+    <code>Node</code>… has no computable size, so the compiler rejects it. A
+    <code>Box</code> is a fixed 8-byte pointer, which gives the type a finite size.
+    (Box isn't about speed — heap access is usually <em>slower</em>; and enums can hold structs fine.)</p>
+  </div>
+
+  <div class="quiz" data-answer="c">
+    <p class="q">What does the <code>Empty</code> variant replace, compared to older languages?</p>
+    <button data-opt="a">It replaces the heap allocation entirely</button>
+    <button data-opt="b">It replaces the i32 element type</button>
+    <button data-opt="c">It replaces the null pointer / end-of-list sentinel</button>
+    <p class="why" hidden><code>Empty</code> is a named, must-be-handled way to say
+    "the chain ends here" — the job a <code>null</code> pointer does elsewhere, but
+    without the crash risk, because the compiler forces you to handle it.</p>
+  </div>
+
+  <div class="quiz" data-answer="a">
+    <p class="q">Where does the <code>List</code> struct itself live, and where do its nodes live?</p>
+    <button data-opt="a">List on the stack; the Nodes on the heap</button>
+    <button data-opt="b">Both the List and its Nodes on the stack</button>
+    <button data-opt="c">Both the List and its Nodes on the heap</button>
+    <p class="why" hidden>The <code>List</code> is just one small <code>Link</code>, so
+    it sits on the stack. Each <code>Box&lt;Node&gt;</code> allocates its <code>Node</code>
+    on the heap and holds the address.</p>
+  </div>
+
+  <!-- ================================================================= -->
+  <h2>Now build it blind</h2>
+  <p>This is the real test — retrieval, not recognition. Try each from memory
+  <em>before</em> revealing. Then type the full thing in the box.</p>
+
+  <div class="flip">
+    <div class="front">Recall: the <code>Node</code> struct (two fields).</div>
+    <div class="back">struct Node {
+    elem: i32,
+    next: Link,
+}</div>
+  </div>
+
+  <div class="flip">
+    <div class="front">Recall: the <code>Link</code> enum (two variants).</div>
+    <div class="back">enum Link {
+    Empty,
+    More(Box&lt;Node&gt;),
+}</div>
+  </div>
+
+  <div class="type-check" data-target="enum Link { Empty, More(Box<Node>) }">
+    <p class="q">From memory, type the <code>Link</code> enum (spacing/newlines don't matter):</p>
+    <textarea rows="4" spellcheck="false" placeholder="enum Link { ... }"></textarea>
+    <button class="check">Check</button>
+    <p class="verdict" hidden></p>
+  </div>
+
+  <div class="type-check" data-target="pub struct List { head: Link }">
+    <p class="q">From memory, type the <code>List</code> struct:</p>
+    <textarea rows="3" spellcheck="false" placeholder="pub struct List { ... }"></textarea>
+    <button class="check">Check</button>
+    <p class="verdict" hidden></p>
+  </div>
+
+  <!-- ================================================================= -->
+  <h2>Go deeper</h2>
+  <p><b>Primary source (read this next):</b>
+  <a href="https://rust-unofficial.github.io/too-many-lists/first-layout.html">Too Many Lists → "Basic Data Layout"</a>
+  — the exact chapter these 16 lines come from. It walks through the same
+  infinite-size error with the compiler in the loop.</p>
+
+  <div class="note">
+    <span class="tag">Your teacher is here</span>
+    Anything unclear — what "8 bytes" really means, why the stack is fast, what
+    <code>i32</code>'s <code>32</code> refers to — <b>ask me</b>. That's what I'm for.
+    Do not move to Lesson 2 with a fuzzy spot; ownership is built on this floor.
+  </div>
+
+  <div class="lesson-nav">
+    <span>Lesson 1 of the <code>first.rs</code> arc</span>
+    <span>Next → <b>Building &amp; owning: <code>new</code>, <code>push</code>, and "move"</b></span>
+  </div>
+
+</div>
+</body>
+</html>

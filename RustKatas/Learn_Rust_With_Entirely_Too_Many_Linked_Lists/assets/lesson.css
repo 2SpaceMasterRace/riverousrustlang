@@ -1,0 +1,220 @@
+/* ===========================================================================
+   Shared lesson stylesheet — Rust Ownership course
+   Tufte-inspired: serif body, generous margins, muted palette, print-friendly.
+   Every lesson links this file. Keep it consistent so the course reads as one.
+   =========================================================================== */
+
+:root {
+  --ink:       #1a1a1a;
+  --ink-soft:  #4a4a4a;
+  --paper:     #fdfcf9;
+  --rule:      #e2ddd2;
+  --accent:    #a8340e;   /* rust red — used sparingly */
+  --accent-bg: #fbeee9;
+  --stack:     #2e6f95;   /* blue = stack */
+  --stack-bg:  #e9f1f6;
+  --heap:      #8a6d1f;   /* amber = heap */
+  --heap-bg:   #f6f0dd;
+  --ok:        #2f6b2f;
+  --ok-bg:     #e8f2e8;
+  --code-bg:   #f4f1ea;
+  --max:       42rem;
+}
+
+* { box-sizing: border-box; }
+
+html { font-size: 18px; }
+
+body {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.55;
+  margin: 0;
+  padding: 3rem 1.5rem 6rem;
+}
+
+.wrap { max-width: var(--max); margin: 0 auto; }
+
+/* --- Course chrome ------------------------------------------------------- */
+.eyebrow {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+}
+.lesson-nav {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--rule);
+  margin-top: 3.5rem;
+  padding-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.lesson-nav a { color: var(--accent); }
+
+/* --- Typography ---------------------------------------------------------- */
+h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 1.5rem; font-weight: 700; }
+h2 {
+  font-size: 1.35rem; margin: 2.8rem 0 0.8rem; font-weight: 700;
+  padding-bottom: 0.25rem; border-bottom: 1px solid var(--rule);
+}
+h3 { font-size: 1.08rem; margin: 1.8rem 0 0.5rem; font-weight: 700; }
+p  { margin: 0 0 1rem; }
+a  { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; }
+ul, ol { margin: 0 0 1rem; padding-left: 1.4rem; }
+li { margin: 0.3rem 0; }
+
+.lede { font-size: 1.12rem; color: var(--ink-soft); }
+
+/* --- Code ---------------------------------------------------------------- */
+code, pre, .mono {
+  font-family: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+}
+code {
+  background: var(--code-bg);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  font-size: 0.86em;
+}
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin: 0 0 1.2rem;
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+.c-com { color: #7a8a7a; font-style: italic; }   /* comment */
+.c-kw  { color: var(--accent); font-weight: 600; } /* keyword */
+.c-ty  { color: var(--stack); }                    /* type */
+.c-fn  { color: var(--heap); }                     /* fn name */
+.c-lit { color: var(--ok); }                       /* literal */
+
+/* --- Callouts ------------------------------------------------------------ */
+.note {
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--stack);
+  background: var(--stack-bg);
+  border-radius: 4px;
+  padding: 0.8rem 1rem;
+  margin: 0 0 1.2rem;
+  font-size: 0.95rem;
+}
+.note.warn   { border-left-color: var(--accent); background: var(--accent-bg); }
+.note.aha    { border-left-color: var(--ok);     background: var(--ok-bg); }
+.note .tag {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+  font-weight: 700; display: block; margin-bottom: 0.25rem; color: var(--ink-soft);
+}
+
+/* --- Memory diagrams ----------------------------------------------------- */
+.mem {
+  display: flex; gap: 1.5rem; flex-wrap: wrap;
+  margin: 1.2rem 0; align-items: flex-start;
+}
+.mem-col { flex: 1 1 12rem; min-width: 11rem; }
+.mem-col h4 {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  margin: 0 0 0.5rem; padding: 0.15rem 0.4rem; border-radius: 3px; display: inline-block;
+}
+.mem-col.stack h4 { background: var(--stack-bg); color: var(--stack); }
+.mem-col.heap  h4 { background: var(--heap-bg);  color: var(--heap); }
+.cell {
+  font-family: "SF Mono", Menlo, monospace; font-size: 0.78rem;
+  border: 1px solid var(--rule); border-radius: 4px;
+  padding: 0.4rem 0.6rem; margin: 0 0 0.5rem; background: #fff;
+}
+.cell.stack { border-color: var(--stack); background: var(--stack-bg); }
+.cell.heap  { border-color: var(--heap);  background: var(--heap-bg); }
+.cell .lbl { color: var(--ink-soft); font-size: 0.7rem; display: block; }
+.cell .ptr { color: var(--accent); }
+
+/* --- Source-map (line-by-line annotation) -------------------------------- */
+.smap { margin: 1.2rem 0; }
+.smap .row {
+  display: grid; grid-template-columns: 1fr; gap: 0.15rem;
+  border-bottom: 1px dashed var(--rule); padding: 0.55rem 0;
+}
+.smap .row:last-child { border-bottom: none; }
+.smap .src {
+  font-family: "SF Mono", Menlo, monospace; font-size: 0.82rem;
+  background: var(--code-bg); padding: 0.25rem 0.5rem; border-radius: 3px;
+}
+.smap .exp { font-size: 0.93rem; color: var(--ink-soft); padding: 0.1rem 0.2rem; }
+.smap .exp b { color: var(--ink); font-weight: 700; }
+
+/* --- Interactive widgets ------------------------------------------------- */
+.quiz, .flip, .type-check {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 1rem 1.1rem;
+  margin: 1.4rem 0;
+  background: #fff;
+}
+.quiz .q, .type-check .q { font-weight: 700; margin: 0 0 0.7rem; }
+.quiz button[data-opt] {
+  display: block; width: 100%; text-align: left;
+  font-family: inherit; font-size: 0.95rem;
+  background: var(--paper); border: 1px solid var(--rule);
+  border-radius: 4px; padding: 0.5rem 0.8rem; margin: 0.4rem 0;
+  cursor: pointer; transition: background 0.12s;
+}
+.quiz button[data-opt]:hover:not(:disabled) { background: var(--code-bg); }
+.quiz button[data-opt]:disabled { cursor: default; opacity: 0.85; }
+.quiz button.right { background: var(--ok-bg); border-color: var(--ok); font-weight: 700; }
+.quiz button.wrong { background: var(--accent-bg); border-color: var(--accent); text-decoration: line-through; }
+.quiz .why {
+  margin: 0.7rem 0 0; font-size: 0.92rem; color: var(--ink-soft);
+  border-top: 1px dashed var(--rule); padding-top: 0.6rem;
+}
+
+.flip { cursor: pointer; }
+.flip .front { font-weight: 700; }
+.flip .back {
+  margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px dashed var(--rule);
+  font-family: "SF Mono", Menlo, monospace; font-size: 0.85rem; color: var(--ok);
+  white-space: pre-wrap;
+}
+.flip-hint {
+  display: inline-block; margin-top: 0.6rem;
+  font-family: -apple-system, sans-serif; font-size: 0.7rem;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft);
+}
+
+.type-check textarea {
+  width: 100%; font-family: "SF Mono", Menlo, monospace; font-size: 0.85rem;
+  border: 1px solid var(--rule); border-radius: 4px; padding: 0.6rem; resize: vertical;
+}
+.type-check .check {
+  font-family: inherit; font-size: 0.9rem; margin-top: 0.6rem;
+  background: var(--accent); color: #fff; border: none; border-radius: 4px;
+  padding: 0.45rem 1.1rem; cursor: pointer;
+}
+.type-check .verdict { margin: 0.8rem 0 0; font-size: 0.92rem; }
+.type-check .verdict.ok { color: var(--ok); font-weight: 700; }
+.type-check .verdict.no { color: var(--accent); }
+.type-check .verdict code { display: inline-block; margin-top: 0.3rem; }
+
+/* --- Print --------------------------------------------------------------- */
+@media print {
+  body { padding: 0; font-size: 11pt; background: #fff; }
+  .quiz-check, .flip-hint, .lesson-nav { display: none !important; }
+  pre, .note, .cell { break-inside: avoid; }
+  a { color: var(--ink); text-decoration: none; }
+}
